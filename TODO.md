@@ -1,6 +1,6 @@
 # To-Do List
 
-##13.Mar.22:
+## 13.Mar.22:
   - [X] ~~Make README.md~~ **Commit b56b95f**
   - [X] ~~Implement CRC-24 functions~~ **Commit a125709**
 
