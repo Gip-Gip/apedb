@@ -1,6 +1,6 @@
 // crc24.rs, includes functions used to compute apedb-compliant CRCs
 
-use crc_any::CRCu32; // Use the CRC_ANY library
+use crc_any::CRCu32; // Use the CRC_ANY crate
 
 pub type Crc24 = u32; // A crc24 is stored in a primitive unsigned 32 bit integer
 

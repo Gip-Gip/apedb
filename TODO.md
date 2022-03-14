@@ -1,7 +1,7 @@
 # To-Do List
 
 ##13.Mar.22:
-  - [ ] Make README.md
+  - [X] ~~Make README.md~~ **Commit b56b95f**
   - [X] ~~Implement CRC-24 functions~~ **Commit a125709**
 
     - Added dependency CRC_ANY
