@@ -15,5 +15,9 @@
     - Provided wrapper module uuid to allow project wide use of UUIDs
       - Also allows the swapping of uuid libraries without any major re-writes of code
 
-  - [ ] Implement UUID cache
+  - [X] ~~Implement UUID cache~~ **Commit db3c71a**
+
+    - Added functions to handle UUID vectors
+    - Added type UuidV4Cache, equal to a Vec<UuidV4>
+
   - [ ] Implement basic database file I/O
