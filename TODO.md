@@ -1,7 +1,8 @@
 # To-Do List
 
 ##13.Mar.22:
-  1. ~~Implement CRC-24 functions~~
+  0. Make README.md
+  1. ~~Implement CRC-24 functions~~ **Commit a125709**
     * Added dependency CRC_ANY
     * Provided wrapper module crc24 to allow project-wide use of the ApeDB crc24 standard
       * Also allows the swapping of crc libraries without any major re-writes of code
