@@ -9,6 +9,11 @@ pub static CRC24_INIT: u32 = 0x00FFFFFF; // Value to initialize the CRC to, set 
 pub static CRC24_XOR: u32 = 0x00000000; // Final XOR, set to zero
 pub static CRC24_REFLECT: bool = false; // Don't reflect the CRC
 
+
+// crc24::compute - computes an ApeDB standard CRC24 from a slice of bytes, returns a Crc24
+//
+// ARGUMENTS:
+//  data - a slice of bytes
 pub fn compute(data: &[u8]) -> Crc24
 {
     // Initialize the crc24 with the correct polynomial, init value, xor, etc. etc.
