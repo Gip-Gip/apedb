@@ -92,7 +92,7 @@ fn main()
 
 // Create database file
 
-    match dbio::Database::open(&"test.apedb")
+    match dbio::Database::create(&"test.apedb")
     {
         Ok(mut db) =>
         {

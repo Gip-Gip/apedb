@@ -1,10 +1,12 @@
 // dbio.rs - contains functions and structs neccessery for database file io
 
 use std::fs::File;
-use std::io::{Error, ErrorKind};
+use std::error::Error;
+use std::io::{Error as IoError, ErrorKind};
 use std::io::prelude::*;
 use std::path::Path;
 use std::io::SeekFrom;
+use simple_error::*;
 
 use crate::crc24;
 
@@ -78,14 +80,14 @@ impl<'a> Database
     // RESULTS:
     //  Ok - return Database
     //  Err - return std::io::Error
-    pub fn create(name: &'a str) -> Result<Database, Error>
+    pub fn create(name: &'a str) -> Result<Database, Box<dyn Error>>
     {
         let path = Path::new(name.clone()); // Convert the name to a path we can work with
 
         if path.exists() // If the file exists...
         {
             // Tell the user we refuse to overwrite the database and return!
-            return Err(Error::new(ErrorKind::Other, "File Already Exists!"));
+            bail!("File Already Exists!");
         }
 
         // Otherwise, create the file and make it read-write enabled!
@@ -117,7 +119,7 @@ impl<'a> Database
     // RESULTS:
     //  Ok - return Database
     //  Err - return std::io::Error
-    pub fn open(name: &'a str) -> Result<Database, Error>
+    pub fn open(name: &'a str) -> Result<Database, Box<dyn Error>>
     {
         let path = Path::new(name.clone()); // Convert the name to a path we can work with...
 
@@ -144,10 +146,7 @@ impl<'a> Database
         if file_length % CHUNK_SIZE as u64 != 0 // Btw we need to cast the CHUNK_SIZE to a u64
         {
             // There is most certainly a sign of corruption! Abort the function and notify the user
-            return Err
-            (
-                Error::new(ErrorKind::Other, "Database an unusual size, corruption detected!")
-            )
+            bail!("Database an unusual size, corruption detected!");
         }
 
         let chunk_count = chunk_offset2number!(file_length); // Convert the file size to a count
@@ -177,17 +176,14 @@ impl<'a> Database
     // RESULTS:
     //  Ok - return () aka nothing
     //  Err - return std::io::Error
-    pub fn add_chunk(&mut self, chunk: &Chunk) -> Result<(), Error>
+    pub fn add_chunk(&mut self, chunk: &Chunk) -> Result<(), Box<dyn Error>>
     {
         let mut data = Vec::<u8>::with_capacity(CHUNK_SIZE); // Create chunk-sized data buffer
 
         // If some erronous code made a data entry greater than the maximum size for a data entry..
         if chunk.data.len() > CHUNK_DATASZ
         {
-            return Err // Hopefully the end user never sees this error...
-            (
-                Error::new(ErrorKind::Other, "Chunks size over max. You shouldn't be seeing this!")
-            );
+            bail!("Chunks size over max. You shouldn't be seeing this!");
         }
 
         // Pad the rest of the unused data space with zeros, to keep the chunk size == CHUNK_SIZE
@@ -230,7 +226,7 @@ impl<'a> Database
     // RESULTS:
     //  Ok - return bool
     //  Err - return std::io::Error
-    pub fn verify_chunk(&mut self, number: u64) -> Result<bool, Error>
+    pub fn verify_chunk(&mut self, number: u64) -> Result<bool, Box<dyn Error>>
     {
         // Create data buffer(will always be CHUNK_SIZE)
         let mut data:[u8;CHUNK_SIZE] = [0; CHUNK_SIZE];
