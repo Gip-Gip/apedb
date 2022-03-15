@@ -2,12 +2,12 @@
 
 ## 13.Mar.23:
   - [ ] Implement basic database file I/O
-    - [ ] Implement Database structs
-      - [ ] Implement function to create a new database
-      - [ ] Implement function to open an existing database
+    - ~~[X] Implement Database structs~~ **Commit 35271ac**
+      - ~~[X] Implement function to create a new database~~ **Commit 35271ac**
+      - ~~[X] Implement function to open an existing database~~ **Commit 35271ac**
     - [ ] Implement file "chunks"
-      - [ ] Implement functions to add generic chunks
-      - [ ] Implement functions to verify the CRC of a chunk
+      - [X] ~~Implement functions to add generic chunks~~ **Commit 35271ac**
+      - [X] ~~Implement functions to verify the CRC of a chunk~~ **Commit 35271ac**
       - [ ] Define chunk flags
       - [ ] Implement a header chunk
       - [ ] Implement a null chunk
