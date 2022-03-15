@@ -1,6 +1,14 @@
 # To-Do List
 
-## 13.Mar.23:
+## 13.Mar.22:
+- [ ] Implement basic database file I/O
+  - [ ] Design standard to store fields of data for header and possibly other purposes
+  - [ ] Implement file "chunks"
+    - [ ] Define chunk flags
+    - [ ] Implement a header chunk
+    - [ ] Implement a null chunk
+
+## 13.Mar.22:
   - [ ] Implement basic database file I/O
     - [X] ~~Implement Database structs~~ **Commit 35271ac**
       - [X] ~~Implement function to create a new database~~ **Commit 35271ac**
@@ -8,9 +16,6 @@
     - [ ] Implement file "chunks"
       - [X] ~~Implement functions to add generic chunks~~ **Commit 35271ac**
       - [X] ~~Implement functions to verify the CRC of a chunk~~ **Commit 35271ac**
-      - [ ] Define chunk flags
-      - [ ] Implement a header chunk
-      - [ ] Implement a null chunk
 
 ## 13.Mar.22:
   - [X] ~~Make README.md~~ **Commit b56b95f**
