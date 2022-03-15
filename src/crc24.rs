@@ -23,3 +23,13 @@ pub fn compute(data: &[u8]) -> Crc24
 
     return crc24.get_crc(); // Return the crc
 }
+
+// crc24::to_be_bytes - converts an ApeDB standard CRC24 to a be byte array
+//
+// ARGUMENTS:
+//  crc - the ApeDB CRC24 to be converted
+pub fn to_be_bytes(crc: Crc24) -> [u8; 3]
+{
+    let crc_bytes = &crc.to_be_bytes()[1..4];
+    return crc_bytes.try_into().expect("CRC slicing gone wrong! You shouldn't see this!");
+}

@@ -1,8 +1,8 @@
 // uuid.rs - contains functions for the creation and caching of UUIDs
-use uuid::Uuid;
+use uuid::Uuid; // Use the uuid library
 
 pub type UuidV4 = u128; // UUIDs are just u128s
-pub type UuidV4Cache = Vec<UuidV4>;
+pub type UuidV4Cache = Vec<UuidV4>; // UUID Caches are just vectors
 
 // uuid::generate - generate a UUID and return it as a u128
 pub fn generate() -> UuidV4

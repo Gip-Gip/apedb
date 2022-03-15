@@ -1,5 +1,17 @@
 # To-Do List
 
+## 13.Mar.23:
+  - [ ] Implement basic database file I/O
+    - [ ] Implement Database structs
+      - [ ] Implement function to create a new database
+      - [ ] Implement function to open an existing database
+    - [ ] Implement file "chunks"
+      - [ ] Implement functions to add generic chunks
+      - [ ] Implement functions to verify the CRC of a chunk
+      - [ ] Define chunk flags
+      - [ ] Implement a header chunk
+      - [ ] Implement a null chunk
+
 ## 13.Mar.22:
   - [X] ~~Make README.md~~ **Commit b56b95f**
   - [X] ~~Implement CRC-24 functions~~ **Commit a125709**
@@ -19,5 +31,3 @@
 
     - Added functions to handle UUID vectors
     - Added type UuidV4Cache, equal to a Vec<UuidV4>
-
-  - [ ] Implement basic database file I/O

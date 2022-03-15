@@ -1,5 +1,6 @@
 mod crc24;
 mod uuid;
+mod dbio;
 
 use std::time::SystemTime;
 
@@ -18,7 +19,7 @@ fn main()
     crc = crc24::compute(&hello.as_bytes());
     println!("CRC: {:x}", crc);
 
-// Quick UUID benchmark, not ment to be permanant so it's ugly
+// Quick UUID benchmark, not meant to be permanant so it's ugly
     let its = 1000;
 
 // Iterate just randomly generating uuids
@@ -88,4 +89,39 @@ fn main()
             println!("Error: {:?}", e);
         }
     }
+
+// Create database file
+
+    match dbio::Database::open(&"test.apedb")
+    {
+        Ok(mut db) =>
+        {
+            let chunk = dbio::Chunk
+            {
+                flags: dbio::chunk_flags::UNDER_CONSTRUCTION,
+                variant: dbio::chunk_variants::DBHEAD,
+                data: &[1, 2, 3, 4, 5],
+                number: 0,
+            };
+
+            db.add_chunk(&chunk).unwrap();
+
+            match db.verify_chunk(0)
+            {
+                Ok(good) =>
+                {
+                    println!("{}", good);
+                }
+
+                Err(e) =>
+                {
+                    println!("Error: {:?}", e)
+                }
+            };
+        }
+        Err(e) =>
+        {
+            println!("Error: {:?}", e)
+        }
+    };
 }
