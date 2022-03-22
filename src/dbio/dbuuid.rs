@@ -1,4 +1,4 @@
-// uuid.rs - contains functions for the creation and caching of UUIDs
+// dbuuid.rs - contains functions for the creation and caching of UUIDs
 use uuid::Uuid; // Use the uuid library
 
 pub type UuidV4 = u128; // UUIDs are just u128s
