@@ -121,17 +121,20 @@ pub struct DbHeadChunk
 
 impl DbHeadChunk
 {
-    pub fn new() -> DbHeadChunk
+    pub fn new(name: String, owner: String) -> DbHeadChunk
     {
+        let mut dbfields = Vec::<Field>::new();
+
+        dbfields.push(Field::new("name".to_string(), Type::S(S::new(name))); // Name field, database name
+        dbfields.push(Field::new("ver".to_string(), Type::I(I::new(0)))) // Version field, database file version
+        dbfields.push(Field::new("uuid_cache_size".to_string(), Type::I(I::new(DB_DEFAULT_UUID_CACHE_SIZE)))); // Uuid cache size field, start out with the default size for a uuid cache
+        dbfields.push(Field::new("perm".to_string(), Type::I(I::new(DB_DEFAULT_UNIX_PERMISSIONS))));
+        dbfields.push(Field::new("owner".to_string(), Type::S(S::new(owner))));
+
         return DbHeadChunk
         {
             chunkNumbers: Vec::<u64>::new(),
-            fields: Vec::<Field>::new(),
+            fields: dbfields,
         };
-    }
-
-    pub fn add_field(&mut self, field: Field)
-    {
-        self.fields.push(field);
     }
 }

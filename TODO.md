@@ -1,21 +1,26 @@
 # To-Do List
 
-## 13.Mar.22:
+## 22.Mar.22:
+- [ ] Document existing code with comments
+- [ ] Implement "I" type
 - [ ] Implement basic database file I/O
-  - [ ] Design standard to store fields of data for header and possibly other purposes
+  - [ ] Re-implement a database struct
+    - [ ] Lay out a few properties likely needed for a database header
+    - [ ] Automatically update the database chunk
+  - [X] ~~Design standard to store fields of data for header and possibly other purposes~~ **Commit 8b5040c**
   - [ ] Implement file "chunks"
-    - [ ] Define chunk flags
-    - [ ] Implement a header chunk
-    - [ ] Implement a null chunk
+    - [X] ~~Implement a header chunk~~ **Commit 8b5040c**
+    - [ ] Implement chunk continuation
+    - [ ] Implement chunk updates
 
 ## 13.Mar.22:
   - [ ] Implement basic database file I/O
-    - [X] ~~Implement Database structs~~ **Commit 35271ac**
-      - [X] ~~Implement function to create a new database~~ **Commit 35271ac**
-      - [X] ~~Implement function to open an existing database~~ **Commit 35271ac**
+    - [X] ~~Implement Database structs~~ **Commit 35271ac** **Nullified 8b5040c**
+      - [X] ~~Implement function to create a new database~~ **Commit 35271ac** **Nullified 8b5040c**
+      - [X] ~~Implement function to open an existing database~~ **Commit 35271ac** **Nullified 8b5040c**
     - [ ] Implement file "chunks"
-      - [X] ~~Implement functions to add generic chunks~~ **Commit 35271ac**
-      - [X] ~~Implement functions to verify the CRC of a chunk~~ **Commit 35271ac**
+      - [X] ~~Implement functions to add generic chunks~~ **Commit 35271ac** **Nullified 8b5040c**
+      - [X] ~~Implement functions to verify the CRC of a chunk~~ **Commit 35271ac** **Nullified 8b5040c**
 
 ## 13.Mar.22:
   - [X] ~~Make README.md~~ **Commit b56b95f**
