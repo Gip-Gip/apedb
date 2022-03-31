@@ -1,11 +1,32 @@
 # To-Do List
 
+## 31.Mar.22
+  - [ ] Implement "I" type
+  - [ ] **Outline code formatting and standards**
+  - [ ] Elaborate on definitions
+  - [ ] Implements structs
+    - [ ] Implement requirements
+  - [ ] Implement basic database file I/O
+    - [ ] Re-implement a database struct
+      - [ ] Lay out a few properties likely needed for a database header
+      - [ ] Automatically update the database chunk
+    - [ ] Implement file "chunks"
+    - [ ] Implement chunk continuation
+      - [ ] Implement chunk updates
+
 ## 22.Mar.22:
-- [ ] Document existing code with comments
+- [X] ~~Document existing code with comments~~ **Commit a29ec14**
 - [ ] Implement "I" type
+
+  - Partially implemented **Commit a29ec14**
+
 - [ ] Implement basic database file I/O
   - [ ] Re-implement a database struct
     - [ ] Lay out a few properties likely needed for a database header
+
+      - Partially implemented **Commit a29ec14**
+      
+
     - [ ] Automatically update the database chunk
   - [X] ~~Design standard to store fields of data for header and possibly other purposes~~ **Commit 8b5040c**
   - [ ] Implement file "chunks"
