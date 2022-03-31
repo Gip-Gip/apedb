@@ -1,30 +1,47 @@
+// dbfield.rs - Contains everything related to fields
+
+
 
 use crate::apetypes::*;
-use simple_error::bail;
 use std::error::Error;
 
 
+
+// Structs!
+//
+
+
+
+// dbio::dbfield::Field - A data structure used to assign IDs to values.
+//
 pub struct Field
 {
-    id: String,
-    value: Type,
+    id: String, // The ID of the field
+    value: Type, // The value of the field
 }
 
 impl Field
 {
-    pub fn new(id: String, value: Type) -> Field
+    // dbio::dbfield::Field::new - Simple field constructor
+    //
+    // ARGUMENTS:
+    //  id: &str - A string containing the ID to assign to the field
+    //  value: Type - an enum containing the Type and value to be assigned
+    pub fn new(id: &str, value: Type) -> Field
     {
         return Field
         {
-            id: id,
+            id: id.to_string(),
             value: value,
         };
     }
 
+    // dbio::dbfield::Field::to_bytes - Converts a field to bytes.
+    //
     pub fn to_bytes(&self) -> Result<Vec<u8>, Box<dyn Error>>
     {
         let id_data = self.id.as_bytes();
-        let id_length:u8 = id_data.len().try_into().expect("ID length check fail!");
+        let id_length:u8 = id_data.len().try_into().expect("ID length check fail!"); // The maximum length of an ID is 255 bytes, this should have been checked before...
 
         let value_data:Vec<u8> = match &self.value
         {
@@ -32,34 +49,68 @@ impl Field
             {
                 string.to_bytes()
             }
-            _=>
+            Type::I(integer) =>
             {
-                bail!("Unsupported type passed to Field::to_bytes!");
+                integer.to_bytes()
+            }
+            Type::B(_) =>
+            {
+                Vec::<u8>::new() // Boolean's values are stored in their type, there is no value to store
             }
         };
 
         let value_type: u8 = match &self.value
         {
-            Type::S(string) =>
+            Type::S(_) =>
             {
                 b'S'
             }
-            _=>
+            Type::I(_) =>
             {
-                panic!("Previous type check failed in Field::to_bytes, you shouldn't see this!");
+                b'I'
+            }
+            Type::B(boolean) =>
+            {
+                // If the boolean is true, the type is an uppercase 'B', otherwise the type is a lowercase 'b'
+                if boolean.is_true()
+                {
+                    b'B'
+                }
+                else
+                {
+                    b'b'
+                }
             }
         };
 
-        let value_length:u64 = value_data.len().try_into().expect("Size of field to big for u64!");
-
         let mut data = Vec::<u8>::new();
 
-        data.push(value_type);
-        data.push(id_length);
+        // Add, in order...
+        data.push(value_type); // The type of the value(a single case-sensitive ascii letter)
+        data.push(id_length); // The length of the ID string
+        data.extend_from_slice(&id_data); // The ID string
 
-        data.extend_from_slice(&id_data);
-        data.extend_from_slice(&value_length.to_be_bytes());
-        data.extend_from_slice(&value_data);
+        match &self.value
+        {
+            // If the type is an I or an S, the length of the value only needs to be one byte long...
+            Type::S(_) | Type::I(_) =>
+            {
+                let value_length:u8 = value_data.len().try_into().expect("Size of field too big for u8");
+                data.push(value_length); // Store the length...
+            }
+
+            // If the type is a B, there is no value to store, so the length is zero!
+            Type::B(_) =>
+            {
+                // Nothing to do here
+            }
+        }
+
+        // If there is a value, add it to the buffer...
+        if value_data.len() > 0
+        {
+            data.extend_from_slice(&value_data);
+        }
 
         return Ok(data);
     }

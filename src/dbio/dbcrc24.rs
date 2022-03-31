@@ -7,9 +7,11 @@ const CRC24_INIT: u32 = 0x00FFFFFF; // Value to initialize the CRC to, set it to
 const CRC24_XOR: u32 = 0x00000000; // Final XOR, set to zero
 const CRC24_REFLECT: bool = false; // Don't reflect the CRC
 
+// dbcrc24::ApeCrc24 - native crc implementation
+//
 pub struct ApeCrc24
 {
-    crc24: u32,
+    crc24: u32, // The CRC value
 }
 
 impl ApeCrc24
@@ -33,11 +35,10 @@ impl ApeCrc24
 
     // crc24::to_be_bytes - converts an ApeDB standard CRC24 to a be byte array
     //
-    // ARGUMENTS:
-    //  crc - the ApeDB CRC24 to be converted
     pub fn to_be_bytes(&self) -> [u8; 3]
     {
         let crc_bytes = &self.crc24.to_be_bytes()[1..4];
+        
         return crc_bytes.try_into().expect("CRC slicing gone wrong! You shouldn't see this!");
     }
 

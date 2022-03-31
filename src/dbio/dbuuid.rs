@@ -1,55 +1,102 @@
 // dbuuid.rs - contains functions for the creation and caching of UUIDs
+
+
 use uuid::Uuid; // Use the uuid library
 
-pub type UuidV4 = u128; // UUIDs are just u128s
-pub type UuidV4Cache = Vec<UuidV4>; // UUID Caches are just vectors
 
-// uuid::generate - generate a UUID and return it as a u128
-pub fn generate() -> UuidV4
+
+// Structs!
+//
+
+
+
+// dbuuid::UuidV4 - apedb uuid v4
+//
+pub struct UuidV4
 {
-    return Uuid::new_v4().as_u128(); // Generate UUID and return it as a UuidV4
+    uuid: Uuid,
 }
 
-// uuid::generate_cache - generate a vector of uuids, meant to be used as a uuid cache
-//
-// ARGUMENTS:
-//  size: usize
-pub fn generate_cache(size: usize) -> UuidV4Cache
+impl UuidV4
 {
-    let mut cache = Vec::<UuidV4>::with_capacity(size);
-
-    fill(&mut cache);
-
-    return cache;
-}
-
-// uuid::get - get a uuid from a cache if there are any left, and if not generate a uuid
-//
-// ARGUMENTS:
-//  cache: &mut UuidV4Cache - the cache to pull from
-pub fn get(cache: &mut UuidV4Cache) -> UuidV4
-{
-    match cache.pop()
+    // dbuuid::UuidV4::new - create a new UUID
+    //
+    pub fn new() -> UuidV4
     {
-        Some(uuid_v4) =>
+        return UuidV4
         {
-            return uuid_v4;
-        }
-        None =>
-        {
-            return generate();
-        }
+            uuid: Uuid::new_v4()
+        };
+    }
+
+    // dbuuid::UuidV4::to_bytes - convert a UUID to bytes
+    //
+    pub fn to_bytes(&self) -> Vec<u8>
+    {
+        return self.uuid.as_bytes().to_vec();
     }
 }
 
-// uuid::fill - fill a uuid cache with uuids
+// dbuuid::UuidV4Cache - cache of UUIDs
 //
-// ARGUMENTS:
-//  cache: &mut UuidV4Cache - the cache to fill
-pub fn fill(cache: &mut UuidV4Cache)
+pub struct UuidV4Cache
 {
-    for _i in cache.len()..cache.capacity()
+    cache: Vec<UuidV4>,
+}
+
+impl UuidV4Cache
+{
+    // dbuuid::UuidV4Cache::new - create a new cache
+    //
+    // ARGUMENTS:
+    //  size: usize - The number of uuids the cache can hold
+    pub fn new(size: usize) -> UuidV4Cache
     {
-        cache.push(generate());
+        let mut cache = Vec::<UuidV4>::with_capacity(size);
+
+        // Fil the cache with uuids
+        for _ in 0 .. cache.capacity()
+        {
+            cache.push(UuidV4::new());
+        }
+
+        return UuidV4Cache
+        {
+            cache: cache,
+        };
+    }
+
+    // dbuuid::UuidV4Cache::get - get a UUID from the cache
+    //
+    pub fn get(&mut self) -> UuidV4
+    {
+        match self.cache.pop()
+        {
+            Some(uuid) =>
+            {
+                return uuid;
+            }
+            None =>
+            {
+                return UuidV4::new();
+            }
+        }
+    }
+
+    // dbuuid::UuidV4Cache::is_empty - check if the cache is empty
+    //
+    pub fn is_empty(&self) -> bool
+    {
+        return self.cache.is_empty();
+    }
+
+    // dbuuid::UuidV4Cache::refill - refill the cache
+    //
+    pub fn refill(&mut self)
+    {
+        for _ in self.cache.len() .. self.cache.capacity()
+        {
+            self.cache.push(UuidV4::new());
+        }
     }
 }
