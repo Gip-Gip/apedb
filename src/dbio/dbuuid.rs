@@ -41,7 +41,7 @@ impl UuidV4
 //
 pub struct UuidV4Cache
 {
-    cache: Vec<UuidV4>,
+    pub cache: Vec<UuidV4>,
 }
 
 impl UuidV4Cache
@@ -98,5 +98,78 @@ impl UuidV4Cache
         {
             self.cache.push(UuidV4::new());
         }
+    }
+}
+
+// Tests!
+//
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    // dbio::dbuuid::test_uuid_v4 - test the uuid v4 generation
+    //
+    #[test]
+    fn test_uuid_v4()
+    {
+        let uuid = UuidV4::new();
+
+        assert_eq!(uuid.to_bytes().len(), 16); // Check the length of the uuid
+        assert_ne!(uuid.to_bytes(), UuidV4::new().to_bytes()); // Check that the uuid is unique
+    }
+
+    // dbio::dbuuid::test_uuid_v4_cache_new - test the uuid v4 cache creation
+    //
+    #[test]
+    fn test_uuid_v4_cache_new()
+    {
+        let cache = UuidV4Cache::new(10);
+
+        assert_eq!(cache.cache.len(), 10); // Check the length of the cache
+        assert_eq!(cache.cache.capacity(), 10); // Check the capacity of the cache
+    }
+
+    // dbio::dbuuid::test_uuid_v4_cache_get - test the uuid v4 cache get
+    //
+    #[test]
+    fn test_uuid_v4_cache_get()
+    {
+        let mut cache = UuidV4Cache::new(10);
+
+        let uuid = cache.get();
+
+        assert_eq!(cache.cache.len(), 9); // Check the length of the cache
+
+        assert_eq!(uuid.to_bytes().len(), 16); // Check the length of the uuid
+        assert_ne!(uuid.to_bytes(), UuidV4::new().to_bytes()); // Check that the uuid is unique
+    }
+
+    // dbio::dbuuid::test_uuid_v4_cache_drain - make sure the cache functions propertly when empty
+    //
+    #[test]
+    fn test_uuid_v4_cache_drain()
+    {
+        let mut cache = UuidV4Cache::new(10);
+
+        cache.cache.drain(..);
+
+        assert_eq!(cache.cache.len(), 0); // Check the length of the cache
+
+        assert_ne!(cache.get().to_bytes(), cache.get().to_bytes()); // Check that the cache doesn't spit out the same uuid if drained
+    }
+
+    // dbio::dbuuid::test_uuid_v4_cache_refill - test the uuid v4 cache refill
+    //
+    #[test]
+    fn test_uuid_v4_cache_refill()
+    {
+        let mut cache = UuidV4Cache::new(10);
+
+        cache.cache.drain(..);
+
+        cache.refill();
+
+        assert_eq!(cache.cache.len(), 10); // Check the length of the cache
     }
 }

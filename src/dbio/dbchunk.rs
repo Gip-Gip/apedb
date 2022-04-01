@@ -11,6 +11,7 @@ use simple_error::*;
 
 use crate::dbio::dbfield::*;
 use crate::dbio::dbcrc24::*;
+use crate::dbio::dbstruct::*;
 use crate::apetypes::*;
 
 
@@ -164,6 +165,12 @@ impl DbHeadChunk
     {
         let mut dbfields = Vec::<Field>::new();
 
+        let mut requirements = Vec::<Requirement>::new();
+
+        //requirements.push(Requirement::new("name", Type::S(())));
+
+        let dbstructure = Structure::new("db", requirements);
+
         dbfields.push(Field::new("name", Type::S(S::new(name)))); // Name field, database name
         dbfields.push(Field::new("ver", Type::I(I::new(0)))); // Version field, database file version
         dbfields.push(Field::new("uuid_cache_size", Type::I(I::new(DB_DEFAULT_UUID_CACHE_SIZE)))); // Uuid cache size field
@@ -171,6 +178,8 @@ impl DbHeadChunk
         dbfields.push(Field::new("owner", Type::S(S::new(owner)))); // Owner field
         dbfields.push(Field::new("sane", Type::B(B::new(true)))); // Sane field
         dbfields.push(Field::new("insane", Type::B(B::new(false)))); // Insane field
+
+        println!("{}", dbstructure.meets(&dbfields));
 
         return DbHeadChunk
         {

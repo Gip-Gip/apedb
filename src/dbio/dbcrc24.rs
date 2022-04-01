@@ -42,4 +42,58 @@ impl ApeCrc24
         return crc_bytes.try_into().expect("CRC slicing gone wrong! You shouldn't see this!");
     }
 
+    // crc24::verify - verify a slice of data. The data is assumed to have the crc appended to the end
+    //
+    pub fn verify(data: &[u8]) -> bool
+    {
+        let crc24 = ApeCrc24::new(data);
+
+        return crc24.crc24 == 0;
+    }
+}
+
+
+
+// Tests!
+//
+
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    #[test]
+    // Test to see if a crc can detect valid data
+    fn test_crc24_valid_data()
+    {
+        let hello = b"Hello World!";
+
+        let crc24 = ApeCrc24::new(hello);
+
+        let mut data = Vec::<u8>::new();
+
+        data.extend_from_slice(hello);
+        data.extend_from_slice(&crc24.to_be_bytes());
+
+        assert_eq!(ApeCrc24::verify(&data), true);
+    }
+
+    #[test]
+    // Test to see if a crc can detect invalid data
+    fn test_crc24_invalid_data()
+    {
+        let hello = b"Hello World!";
+
+        let crc24 = ApeCrc24::new(hello);
+
+        let mut data = Vec::<u8>::new();
+
+        data.extend_from_slice(hello);
+
+        data[3] = 0xFF; // Intentionally modify the string to make it invalid
+
+        data.extend_from_slice(&crc24.to_be_bytes());
+
+        assert_eq!(ApeCrc24::verify(&data), false);
+    }
 }

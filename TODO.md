@@ -1,6 +1,7 @@
 # To-Do List
 
 ## 31.Mar.22
+  - [ ] Add tests
   - [ ] Implement "I" type
   - [ ] **Outline code formatting and standards**
   - [ ] Elaborate on definitions

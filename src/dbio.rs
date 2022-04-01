@@ -4,3 +4,4 @@ pub mod dbuuid;
 pub mod dbcrc24;
 pub mod dbfield;
 pub mod dbchunk;
+pub mod dbstruct;
