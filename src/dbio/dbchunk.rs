@@ -7,6 +7,7 @@ use std::error::Error;
 use std::io::prelude::*;
 use std::path::Path;
 use std::io::SeekFrom;
+use std::mem::*;
 use simple_error::*;
 
 use crate::dbio::dbfield::*;
@@ -167,7 +168,7 @@ impl DbHeadChunk
 
         let mut requirements = Vec::<Requirement>::new();
 
-        //requirements.push(Requirement::new("name", Type::S(())));
+        requirements.push(Requirement::new("name", std::mem::discriminant(&Type::S(S::new("")))));
 
         let dbstructure = Structure::new("db", requirements);
 

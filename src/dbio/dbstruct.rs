@@ -2,6 +2,8 @@
 //
 
 
+
+use std::mem::*;
 use crate::dbio::dbfield::*;
 use crate::apetypes::*;
 
@@ -17,7 +19,7 @@ use crate::apetypes::*;
 pub struct Requirement
 {
     pub field_id: String, // The ID of the required field
-    pub field_type: Type, // The type of the required field
+    pub field_type: Discriminant<Type>, // The type of the required field
 }
 
 impl Requirement
@@ -27,7 +29,7 @@ impl Requirement
     // ARGUMENTS:
     //  field_id: &str - A string containing the ID of the required field
     //  field_type: Type - The type of the required field
-    pub fn new(field_id: &str, field_type: Type) -> Requirement
+    pub fn new(field_id: &str, field_type: Discriminant<Type>) -> Requirement
     {
         return Requirement
         {
@@ -43,7 +45,7 @@ impl Requirement
     pub fn meets(&self, field: &Field) -> bool
     {
         return self.field_id == field.id &&
-            std::mem::discriminant(&self.field_type) == std::mem::discriminant(&field.value);
+            self.field_type == std::mem::discriminant(&field.value);
     }
 }
 
