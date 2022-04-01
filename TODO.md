@@ -2,6 +2,9 @@
 
 ## 31.Mar.22
   - [ ] Add tests
+
+    - Partially implemented **Commit 22383ef**
+
   - [ ] Implement "I" type
   - [ ] **Outline code formatting and standards**
   - [ ] Elaborate on definitions
