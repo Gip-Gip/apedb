@@ -168,17 +168,17 @@ impl DbHeadChunk
 
         let mut requirements = Vec::<Requirement>::new();
 
-        requirements.push(Requirement::new("name", std::mem::discriminant(&Type::S(S::new("")))));
+        //requirements.push(Requirement::new("name", std::mem::discriminant(&Type::S(S::new("")))));
 
         let dbstructure = Structure::new("db", requirements);
 
-        dbfields.push(Field::new("name", Type::S(S::new(name)))); // Name field, database name
-        dbfields.push(Field::new("ver", Type::I(I::new(0)))); // Version field, database file version
-        dbfields.push(Field::new("uuid_cache_size", Type::I(I::new(DB_DEFAULT_UUID_CACHE_SIZE)))); // Uuid cache size field
-        dbfields.push(Field::new("perm", Type::I(I::new(DB_DEFAULT_UNIX_PERMISSIONS)))); // Unix permissions field
-        dbfields.push(Field::new("owner", Type::S(S::new(owner)))); // Owner field
-        dbfields.push(Field::new("sane", Type::B(B::new(true)))); // Sane field
-        dbfields.push(Field::new("insane", Type::B(B::new(false)))); // Insane field
+        dbfields.push(Field::new("name", Type::S(Some(S::new(name))))); // Name field, database name
+        dbfields.push(Field::new("ver", Type::I(Some(I::new(0))))); // Version field, database file version
+        dbfields.push(Field::new("uuid_cache_size", Type::I(Some(I::new(DB_DEFAULT_UUID_CACHE_SIZE))))); // Uuid cache size field
+        dbfields.push(Field::new("perm", Type::I(Some(I::new(DB_DEFAULT_UNIX_PERMISSIONS))))); // Unix permissions field
+        dbfields.push(Field::new("owner", Type::S(Some(S::new(owner))))); // Owner field
+        dbfields.push(Field::new("sane", Type::B(Some(B::new(true))))); // Sane field
+        dbfields.push(Field::new("insane", Type::B(Some(B::new(false))))); // Insane field
 
         println!("{}", dbstructure.meets(&dbfields));
 

@@ -13,7 +13,7 @@ use simple_error::*;
 
 // dbio::dbfield::Field - A data structure used to assign IDs to values.
 //
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Field
 {
     pub id: String, // The ID of the field
@@ -47,11 +47,11 @@ impl Field
         {
             Type::S(string) =>
             {
-                string.to_bytes()
+                string.as_ref().unwrap().to_bytes()
             }
             Type::I(integer) =>
             {
-                integer.to_bytes()
+                integer.as_ref().unwrap().to_bytes()
             }
             Type::B(_) =>
             {
@@ -72,7 +72,7 @@ impl Field
             Type::B(boolean) =>
             {
                 // If the boolean is true, the type is an uppercase 'B', otherwise the type is a lowercase 'b'
-                if boolean.is_true()
+                if boolean.as_ref().unwrap().is_true()
                 {
                     b'B'
                 }
@@ -161,7 +161,7 @@ impl Field
         {
             b'S' =>
             {
-                Type::S(S::from_bytes(value_data)?)
+                Type::S(Some(S::from_bytes(value_data)?))
             }
             _ =>
             {
@@ -170,15 +170,6 @@ impl Field
         };
 
         return Ok(Field::new(&id, value));
-    }
-}
-
-// Implement equality function for Field
-impl PartialEq for Field
-{
-    fn eq(&self, other: &Field) -> bool
-    {
-        return self.id == other.id && self.value == other.value;
     }
 }
 
@@ -204,7 +195,7 @@ mod test
     {
         let id = "Hello";
         let value = "World";
-        let field = Field::new(id, Type::S(S::new(value)));
+        let field = Field::new(id, Type::S(Some(S::new(value))));
 
         assert_eq!(field.to_bytes().unwrap(), test_string_data);
     }
@@ -216,7 +207,7 @@ mod test
     {
         let id = "Hello";
         let value = "World";
-        let field = Field::new(id, Type::S(S::new(value)));
+        let field = Field::new(id, Type::S(Some(S::new(value))));
 
         assert_eq!(Field::from_bytes(&test_string_data).unwrap(), field);
     }
@@ -264,7 +255,7 @@ mod test
     {
         let id = "Hello";
         let value = "World";
-        let field = Field::new(id, Type::S(S::new(value)));
+        let field = Field::new(id, Type::S(Some(S::new(value))));
 
         assert_eq!(Field::from_bytes(&field.to_bytes().unwrap()).unwrap(), field);
     }

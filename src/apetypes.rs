@@ -13,28 +13,12 @@ use std::error::Error;
 
 // apetypes::Type - Enum for the different types of data that can be stored in the database.
 //
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type
 {
-    I(I), // Integer
-    S(S), // String
-    B(B), // Boolean
-}
-
-
-// Implement equality function for Type
-impl PartialEq for Type
-{
-    fn eq(&self, other: &Self) -> bool
-    {
-        return match (self, other)
-        {
-            (Type::I(i1), Type::I(i2)) => i1 == i2,
-            (Type::S(s1), Type::S(s2)) => s1 == s2,
-            (Type::B(b1), Type::B(b2)) => b1 == b2,
-            _ => false,
-        };
-    }
+    I(Option<I>), // Integer
+    S(Option<S>), // String
+    B(Option<B>), // Boolean
 }
 
 // Structs!
@@ -44,7 +28,7 @@ impl PartialEq for Type
 
 // apetypes::S - Database string type
 //
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct S
 {
     string: String, // The string
@@ -87,17 +71,9 @@ impl S
     }
 }
 
-impl PartialEq for S
-{
-    fn eq(&self, other: &Self) -> bool
-    {
-        return self.string == other.string;
-    }
-}
-
 // apetypes::I - Database integer type
 //
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct I
 {
     most_significant: i64,
@@ -131,17 +107,9 @@ impl I
     }
 }
 
-impl PartialEq for I
-{
-    fn eq(&self, other: &Self) -> bool
-    {
-        return self.most_significant == other.most_significant;
-    }
-}
-
 // apetypes::B - Database boolean type
 //
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct B
 {
     boolean: bool, // The boolean value
@@ -166,13 +134,5 @@ impl B
     pub fn is_true(&self) -> bool
     {
         return self.boolean;
-    }
-}
-
-impl PartialEq for B
-{
-    fn eq(&self, other: &Self) -> bool
-    {
-        return self.boolean == other.boolean;
     }
 }

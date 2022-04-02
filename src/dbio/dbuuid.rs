@@ -12,6 +12,7 @@ use uuid::Uuid; // Use the uuid library
 
 // dbuuid::UuidV4 - apedb uuid v4
 //
+#[derive(Debug, Clone, PartialEq)]
 pub struct UuidV4
 {
     uuid: Uuid,
@@ -116,7 +117,7 @@ mod tests
         let uuid = UuidV4::new();
 
         assert_eq!(uuid.to_bytes().len(), 16); // Check the length of the uuid
-        assert_ne!(uuid.to_bytes(), UuidV4::new().to_bytes()); // Check that the uuid is unique
+        assert_ne!(uuid, UuidV4::new()); // Check that the uuid is unique
     }
 
     // dbio::dbuuid::test_uuid_v4_cache_new - test the uuid v4 cache creation

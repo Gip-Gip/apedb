@@ -16,6 +16,7 @@ use crate::apetypes::*;
 
 // dbio::dbstruct::Requirement - A single requirement in a database structure
 //
+#[derive(Debug, Clone, PartialEq)]
 pub struct Requirement
 {
     pub field_id: String, // The ID of the required field
@@ -53,6 +54,7 @@ impl Requirement
 
 // dbio::dbstruct::Structure - A database structure
 //
+#[derive(Debug, Clone, PartialEq)]
 pub struct Structure
 {
     id: String, // The ID of the structure
@@ -102,5 +104,121 @@ impl Structure
         }
 
         return true;
+    }
+}
+
+// Tests!
+//
+
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    // dbio::dbstruct::tests::test_requirement_new() - Tests the creation of a Requirement
+    //
+    #[test]
+    fn test_requirement_new()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        assert_eq!(req.field_id, "id");
+        assert_eq!(req.field_type, disc);
+    }
+
+    // dbio::dbstruct::tests::test_requirement_meets() - Tests the requirement meets function
+    //
+    #[test]
+    fn test_requirement_meets()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        let field = Field::new("id", Type::S(Some(S::new("Test"))));
+        assert!(req.meets(&field));
+    }
+
+    // dbio::dbstruct::tests::test_requirement_doesnt_meet_type() - Tests the requirement doesn't meet function, when the type doesn't match
+    //
+    #[test]
+    fn test_requirement_doesnt_meet_type()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        let field = Field::new("id", Type::I(Some(I::new(10))));
+        assert!(!req.meets(&field)); // Test fails because the field is not the same type
+    }
+
+    // dbio::dbstruct::tests::test_requirement_doesnt_meet_id() - Tests the requirement doesn't meet function, when the ID doesn't match
+    //
+    #[test]
+    fn test_requirement_doesnt_meet_id()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        let field = Field::new("id2", Type::S(Some(S::new("Test"))));
+        assert!(!req.meets(&field)); // Test fails because the field is not the same ID
+    }
+
+    // dbio::dbstruct::tests::test_structure_new() - Tests the creation of a Structure
+    //
+    #[test]
+    fn test_structure_new()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        let mut requirements = Vec::new();
+        requirements.push(req);
+        let requirements2 = requirements.clone();
+        let structure = Structure::new("id", requirements);
+        assert_eq!(structure.id, "id");
+        assert_eq!(structure.requirements, requirements2);
+    }
+
+    // dbio::dbstruct::tests::test_structure_meets() - Tests the structure meets function
+    //
+    #[test]
+    fn test_structure_meets()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        let field = Field::new("id", Type::S(Some(S::new("Test"))));
+        let mut requirements = Vec::new();
+        requirements.push(req);
+        let structure = Structure::new("id", requirements);
+        let mut fields = Vec::new();
+        fields.push(field);
+        assert!(structure.meets(&fields));
+    }
+
+    // dbio::dbstruct::tests::test_structure_doesnt_meet_type() - Tests the structure doesn't meet function, when the type doesn't match
+    //
+    #[test]
+    fn test_structure_doesnt_meet_type()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        let field = Field::new("id", Type::I(Some(I::new(10))));
+        let mut requirements = Vec::new();
+        requirements.push(req);
+        let structure = Structure::new("id", requirements);
+        let mut fields = Vec::new();
+        fields.push(field);
+        assert!(!structure.meets(&fields)); // Test fails because the field is not the same type
+    }
+
+    // dbio::dbstruct::tests::test_structure_doesnt_meet_id() - Tests the structure doesn't meet function, when the ID doesn't match
+    //
+    #[test]
+    fn test_structure_doesnt_meet_id()
+    {
+        let disc = std::mem::discriminant(&Type::S(None));
+        let req = Requirement::new("id", disc);
+        let field = Field::new("id2", Type::S(Some(S::new("Test"))));
+        let mut requirements = Vec::new();
+        requirements.push(req);
+        let structure = Structure::new("id", requirements);
+        let mut fields = Vec::new();
+        fields.push(field);
+        assert!(!structure.meets(&fields)); // Test fails because the field is not the same ID
     }
 }
