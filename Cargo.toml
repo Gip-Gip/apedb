@@ -9,3 +9,4 @@ edition = "2021"
 crc-any = "2.4.2"
 uuid = {version = "0.8.2", features = ["v4"]}
 simple-error = "0.2.3"
+apebdlm = "0.0.1"

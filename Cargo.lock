@@ -3,9 +3,16 @@
 version = 3
 
 [[package]]
+name = "apebdlm"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "907e7fba1b4785fdce4b1d0aa85038393548b21aa59e7cdf6eec1f651ee010e1"
+
+[[package]]
 name = "apedb"
 version = "0.0.1"
 dependencies = [
+ "apebdlm",
  "crc-any",
  "simple-error",
  "uuid",

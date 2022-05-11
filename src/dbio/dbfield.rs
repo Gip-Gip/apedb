@@ -5,6 +5,7 @@
 use crate::apetypes::*;
 use std::error::Error;
 use simple_error::*;
+use apebdlm::*;
 
 // Structs!
 //
@@ -83,34 +84,29 @@ impl Field
             }
         };
 
-        let mut data = Vec::<u8>::new();
-
-        // Add, in order...
-        data.push(value_type); // The type of the value(a single case-sensitive ascii letter)
-        data.push(id_length); // The length of the ID string
-        data.extend_from_slice(&id_data); // The ID string
-
-        match &self.value
+        let data = match &self.value
         {
-            // If the type is an I or an S, the length of the value only needs to be one byte long...
-            Type::S(_) | Type::I(_) =>
+            Type::S(_) | Type::I(_) => // Types S and I have the same binary layout...
             {
-                let value_length:u8 = value_data.len().try_into().expect("Size of field too big for u8");
-                data.push(value_length); // Store the length...
+                binary_data!
+                (
+                    byte!(value_type), // The type
+                    byte!(id_length), // The length of the ID in bytes (max 255)
+                    bytes_from_vec!(id_data), // The ID
+                    byte!(value_data.len()), // The length of the value in bytes (max 255)
+                    bytes_from_vec!(value_data) // The value
+                )
             }
-
-            // If the type is a B, there is no value to store, so the length is zero!
-            Type::B(_) =>
+            Type::B(_) => // Booleans do not need a data field so that is omitted...
             {
-                // Nothing to do here
+                binary_data!
+                (
+                    byte!(value_type), // The type
+                    byte!(id_length), // The length of the ID in bytes (max 255)
+                    bytes_from_vec!(id_data) // The ID
+                )
             }
-        }
-
-        // If there is a value, add it to the buffer...
-        if value_data.len() > 0
-        {
-            data.extend_from_slice(&value_data);
-        }
+        };
 
         return Ok(data);
     }
