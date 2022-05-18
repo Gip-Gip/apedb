@@ -108,6 +108,9 @@ impl Field
             {
                 binary_data!
                 (
+                    byte!(0), // Header byte, used for binary tree metadata
+                    u64_be!(0), // Pointer to left child
+                    u64_be!(0), // Pointer to right child
                     byte!(value_type), // The type
                     byte!(id_length), // The length of the ID in bytes (max 255)
                     bytes_from_vec!(id_data), // The ID
@@ -119,6 +122,9 @@ impl Field
             {
                 binary_data!
                 (
+                    byte!(0), // Header byte, used for binary tree metadata
+                    u64_be!(0), // Pointer to left child
+                    u64_be!(0), // Pointer to right child
                     byte!(value_type), // The type
                     byte!(id_length), // The length of the ID in bytes (max 255)
                     bytes_from_vec!(id_data) // The ID
