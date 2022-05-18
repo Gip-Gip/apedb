@@ -2,10 +2,28 @@
 
 
 
+use std::io::Read;
+use std::io::Seek;
+use std::fs::File;
 use crate::apetypes::*;
 use std::error::Error;
 use simple_error::*;
 use apebdlm::*;
+
+// Constants!
+//
+
+pub const FIELDHEADSZ: usize = 17; // 1 header byte + pointer to left child + pointer to right child
+
+// Enums!
+//
+
+pub enum FieldCmp
+{
+    Equal,
+    GreaterThan,
+    LessThan
+}
 
 // Structs!
 //
@@ -115,7 +133,7 @@ impl Field
     //
     // ARGUMENTS:
     //  data: &[u8] - A slice of bytes to be converted to a field
-    fn from_bytes(data: &[u8]) -> Result<Field, Box<dyn Error>>
+    pub fn from_bytes(data: &[u8]) -> Result<Field, Box<dyn Error>>
     {
         if data.len() < 3
         {
@@ -166,6 +184,102 @@ impl Field
         };
 
         return Ok(Field::new(&id, value));
+    }
+
+    pub fn cmp_in_file(mut file: File, field_point_a: u64, field_point_b: u64) -> Result<FieldCmp, Box<dyn Error>>
+    {
+        // Does not work with continued chunks, to be implemented!
+        // Implement a buffer of 256 bytes in size for both the a and b fields
+        let mut buffer_a: [u8;256] = [0; 256];
+        let mut buffer_b: [u8;256] = [0; 256];
+
+        // Skip past the header on the first field point since it is kinda useless for what we need to do...
+        file.seek(std::io::SeekFrom::Start(field_point_a + (FIELDHEADSZ as u64)))?;
+        file.read(&mut buffer_a)?; // Read the first field
+
+        // Skip past the header on the second field point since it is kinda useless for what we need to do...
+        file.seek(std::io::SeekFrom::Start(field_point_b + (FIELDHEADSZ as u64)))?;
+        file.read(&mut buffer_b)?; // Read the second field
+
+        // Initialize the iterator...
+        let mut i: usize = 0;
+
+        // Get the ID length
+        let id_len_a = buffer_a[i];
+        let id_len_b = buffer_b[i];
+
+        // Compare the id lengths for a difference...
+
+        if id_len_a > id_len_b
+        {
+            return Ok(FieldCmp::GreaterThan);
+        }
+
+        if id_len_a < id_len_b
+        {
+            return Ok(FieldCmp::LessThan);
+        }
+
+        // Increment the iterator
+        i += 1;
+        // Set the start point...
+        let mut start_i = i;
+
+        // Compare the id data for a difference...
+        while (i - start_i) < (id_len_a as usize)
+        {
+            if buffer_a[i] > buffer_b[i]
+            {
+                return Ok(FieldCmp::GreaterThan);
+            }
+
+            if buffer_a[i] < buffer_b[i]
+            {
+                return Ok(FieldCmp::LessThan);
+            }
+
+            // Increment the iterator
+            i += 1;
+        }
+
+        // Compare the value lengths for a difference...
+        let value_len_a = buffer_a[i];
+        let value_len_b = buffer_b[i];
+
+        if value_len_a > value_len_b
+        {
+            return Ok(FieldCmp::GreaterThan);
+        }
+
+        if value_len_a < value_len_b
+        {
+            return Ok(FieldCmp::LessThan);
+        }
+
+        // Increment the iterator
+        i += 1;
+        // Set the start point...
+        start_i = i;
+
+        // Compare the value data for a difference...
+        while (i - start_i) < (value_len_a as usize)
+        {
+            if buffer_a[i] > buffer_b[i]
+            {
+                return Ok(FieldCmp::GreaterThan);
+            }
+
+            if buffer_a[i] < buffer_b[i]
+            {
+                return Ok(FieldCmp::LessThan);
+            }
+
+            // Increment the iterator
+            i += 1;
+        }
+
+
+        return Ok(FieldCmp::Equal);
     }
 }
 

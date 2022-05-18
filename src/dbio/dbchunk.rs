@@ -7,7 +7,6 @@ use std::error::Error;
 use std::io::prelude::*;
 use std::path::Path;
 use std::io::SeekFrom;
-use std::mem::*;
 use simple_error::*;
 use crate::dbio::dbfield::*;
 use crate::dbio::dbcrc24::*;
@@ -23,9 +22,7 @@ use apebdlm::*;
 
 
 const CHUNKSZ: usize = 256; // Total size of a chunk
-const CHUNKHEADSZ: usize = 2; // Size of the chunk header
 const CHUNKCRCSZ: usize = 3; // Size of the chunk CRC
-const CHUNKDATASZ: usize = 256 - CHUNKHEADSZ - CHUNKCRCSZ; // Size of the chunk data
 const CHUNKFIELDALLOC: usize = 256; // The default amount of memory to allocate with working with individual fields
 
 const CHUNK_ENTRY_CONT_HEADSZ: usize = 9; // 1 u8 + 1 u64 = 9 bytes
@@ -107,10 +104,10 @@ impl ChunkyFile
         return Ok(None); // To be removed...   
     }
 
-    pub fn add_entryChunk(&mut self, chunk: EntryChunk) -> Result<Vec<u64>, Box<dyn Error>>
+    pub fn add_entry_chunk(&mut self, chunk: EntryChunk) -> Result<Vec<u64>, Box<dyn Error>>
     {
         let mut i = 0;
-        let g = chunk.fields.len();
+        let g = chunk.fields.len(); // Allocate enough memory for the insertion points equal to the number of fields +1 for the insertion point of the chunk itself
         let mut insertion_points = Vec::<u64>::with_capacity(g);
 
         // Get the total data of all of the fields + the total length
@@ -155,6 +152,8 @@ impl ChunkyFile
                 carry_data = data.split_off(CHUNK_ENTRY_CONT_DATASZ);
                 written_len += data.len();
 
+                // Layout of the continued entry chunk!
+                //
                 let mut chunk_data = binary_data!
                 (
                     byte!(header), // Chunk header
@@ -194,6 +193,8 @@ impl ChunkyFile
                 let data_length: u8 = data.len().try_into().expect("Stub chunk data length over 255! You shouldn't see this!");
                 let padding = vec![0; CHUNK_ENTRY_STUB_DATASZ - (data_length as usize)];
 
+                // Layout of the stub entry chunk!
+                //
                 let mut chunk_data = binary_data!
                 (
                     byte!(header), // Header
@@ -264,7 +265,7 @@ impl DbHeadChunk
 pub struct EntryChunk
 {
     //pub chunk_numbers: Vec<u64>,
-    pub fields: Vec<TreeField>,
+    pub fields: Vec<Field>,
 }
 
 impl EntryChunk

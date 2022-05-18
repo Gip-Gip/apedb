@@ -44,7 +44,7 @@ fn main()
 
     let entry = Entry::new(UuidV4::new(), entry_fields).expect("Failed to create entry!");
 
-    match chunky_db.add_entryChunk(EntryChunk::new(entry))
+    match chunky_db.add_entry_chunk(EntryChunk::new(entry))
     {
         Ok(insertion_points) =>
         {

@@ -1,12 +1,11 @@
 
-
-
 use std::error::Error;
 use simple_error::*;
 use crate::dbio::dbstruct::Structure;
 use crate::dbio::dbstruct::Requirement;
 use crate::dbio::dbfield::Field;
 use crate::dbio::dbuuid::UuidV4;
+use crate::dbio::dbchunk::*;
 use crate::apetypes::S;
 use crate::apetypes::Type;
 use apebdlm::*;
@@ -61,34 +60,20 @@ impl TreeField
 pub struct Entry
 {
     pub uuid: UuidV4,
-    pub fields: Vec<TreeField>,
-    pub greater_than: u64,
-    pub less_than: u64,
-    pub parent: u64,
-    pub relations_initialized: bool,
+    pub fields: Vec<Field>,
 }
 
 impl Entry
 {
     pub fn new(uuid: UuidV4, fields: Vec<Field>) -> Result<Entry, Box<dyn Error>>
     {
-        let mut tree_fields: Vec<TreeField> = Vec::new();
-
-        for field in fields
-        {
-            tree_fields.push(TreeField::new(field));
-        }
 
         return Ok
         (
             Entry
             {
                 uuid: uuid,
-                fields: tree_fields,
-                greater_than: 0,
-                less_than: 0,
-                parent: 0,
-                relations_initialized: false,
+                fields: fields,
             }
         );
     }
@@ -97,9 +82,9 @@ impl Entry
     {
         for field in &self.fields
         {
-            if field.field.id == field_id
+            if field.id == field_id
             {
-                return Some(&field.field);
+                return Some(&field);
             }
         }
 
@@ -107,7 +92,41 @@ impl Entry
     }
 }
 
+pub struct List
+{
+    pub structure: Structure,
+    pub b_tree_head: u64,
+    pub db_file: ChunkyFile,
+    pub entry_count: u64
+}
 
+impl List
+{
+    pub fn new(db_file: ChunkyFile, structure: Structure) -> Self
+    {
+        return Self
+        {
+            structure: structure,
+            b_tree_head: 0,
+            db_file: db_file,
+            entry_count: 0,
+        };
+    }
+
+    pub fn add_entry(&mut self, entry: Entry) -> Result<(), Box<dyn Error>>
+    {   
+        let entry_chunk = EntryChunk::new(entry);
+        let mut insertion_points = self.db_file.add_entry_chunk(entry_chunk)?;
+
+        if(self.b_tree_head == 0 && insertion_points.len() > 0)
+        {
+            self.b_tree_head = insertion_points.pop().expect("Insertion point length check failed! you shouldn't see this!");
+        }
+
+
+        return Ok(());
+    }
+}
 
 // Tests!
 //
