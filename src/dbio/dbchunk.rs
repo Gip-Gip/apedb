@@ -60,10 +60,11 @@ pub enum ChunkTypes
 
 // dbchunk::ChunkyFile - Struct for interfacing with chunky files
 //
+#[derive(Debug)]
 pub struct ChunkyFile
 {
-    file: File, // The file
-    size: usize, // The size of the file
+    pub file: File, // The file
+    pub size: usize, // The size of the file
 }
 
 impl ChunkyFile

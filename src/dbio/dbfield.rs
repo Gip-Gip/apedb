@@ -13,11 +13,12 @@ use apebdlm::*;
 // Constants!
 //
 
-pub const FIELDHEADSZ: usize = 17; // 1 header byte + pointer to left child + pointer to right child
+pub const FIELDHEADSZ: usize = 18; // 1 header byte + pointer to left child + pointer to right child + field type
 
 // Enums!
 //
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum FieldCmp
 {
     Equal,
@@ -35,6 +36,9 @@ pub enum FieldCmp
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field
 {
+    pub avl_balace: i8,
+    pub left_child: u64,
+    pub right_child: u64,
     pub id: String, // The ID of the field
     pub value: Type, // The value of the field
 }
@@ -50,6 +54,9 @@ impl Field
     {
         return Field
         {
+            avl_balace: 0,
+            left_child: 0,
+            right_child: 0,
             id: id.to_string(),
             value: value,
         };
@@ -108,9 +115,9 @@ impl Field
             {
                 binary_data!
                 (
-                    byte!(0), // Header byte, used for binary tree metadata
-                    u64_be!(0), // Pointer to left child
-                    u64_be!(0), // Pointer to right child
+                    byte_signed!(self.avl_balace), // Header byte, used for binary tree metadata
+                    u64_be!(self.left_child), // Pointer to left child
+                    u64_be!(self.right_child), // Pointer to right child
                     byte!(value_type), // The type
                     byte!(id_length), // The length of the ID in bytes (max 255)
                     bytes_from_vec!(id_data), // The ID
@@ -122,9 +129,9 @@ impl Field
             {
                 binary_data!
                 (
-                    byte!(0), // Header byte, used for binary tree metadata
-                    u64_be!(0), // Pointer to left child
-                    u64_be!(0), // Pointer to right child
+                    byte_signed!(self.avl_balace), // Header byte, used for binary tree metadata
+                    u64_be!(self.left_child), // Pointer to left child
+                    u64_be!(self.right_child), // Pointer to right child
                     byte!(value_type), // The type
                     byte!(id_length), // The length of the ID in bytes (max 255)
                     bytes_from_vec!(id_data) // The ID
@@ -141,58 +148,107 @@ impl Field
     //  data: &[u8] - A slice of bytes to be converted to a field
     pub fn from_bytes(data: &[u8]) -> Result<Field, Box<dyn Error>>
     {
-        if data.len() < 3
-        {
-            return Err(Box::new(SimpleError::new("Field data is too short!")));
-        }
+        // Check to make sure the length of the data isn't too short(to be implemented)
 
-        let mut index:usize = 0;
+        // Use an iterator through the data to keep track of where we are...
+        let mut i: usize = 0;
+        // Get all the fixed header data...
 
-        // Get the value type
-        let value_type:u8 = data[index];
-        index += 1;
+        let avl_balance: i8 = data[i] as i8; // Get the avl balance...
+        i += 1;
 
-        // Get the ID length
-        let id_length:u8 = data[index];
-        if id_length as usize + index + 1 > data.len()
-        {
-            return Err(Box::new(SimpleError::new("Field data is too short!")));
-        }
-        index += 1;
+        let left_child: u64 = u64::from_be_bytes(data[i..i+8].try_into().expect("Slice of incorrect size when reading the left child of an entry, you shouldn't see this!")); // Get the left child pointer...
+        i += 8;
 
-        // Get the ID data
-        let id_data = &data[index..(index+id_length as usize)];
-        index += id_length as usize;
+        let right_child: u64 = u64::from_be_bytes(data[i..i+8].try_into().expect("Slice of incorrect size when reading the right child of an entry, you shouldn't see this!")); // Get the right child pointer...
+        i += 8;
 
-        let id = String::from_utf8(id_data.to_vec())?;
+        let value_type_byte: u8 = data[i]; // Get the value type...
+        i += 1;
 
-        // Get the value length
-        let value_length:u8 = data[index];
-        if value_length as usize + index + 1 > data.len()
-        {
-            return Err(Box::new(SimpleError::new("Field data is too short!")));
-        }
-        index += 1;
+        // Get the ID...
+        let id_length: u8 = data[i]; // Get the length of the ID...
+        // Check to see if the ID length doesn't make sense (to be implemented)...
+        i += 1;
 
-        // Get the value data
-        let value_data = &data[index..(index+value_length as usize)];
+        let id_data: Vec<u8> = data[i..i+id_length as usize].to_vec(); // Get the ID data...
+        i += id_length as usize;
 
-        let value = match value_type
+        // Get the value data...
+        // Note that the way we extrapolate the data depends on the value type...
+        let value = match value_type_byte
         {
             b'S' =>
             {
-                Type::S(Some(S::from_bytes(value_data)?))
+                let value_length: u8 = data[i]; // Get the length of the value...
+                i += 1;
+                let value_data: Vec<u8> = data[i..i+value_length as usize].to_vec(); // Get the value data...
+
+                Type::S(Some(S::from_bytes(&value_data)?)) // Set value to a string...
             }
+
+            b'I' =>
+            {
+                let value_length: u8 = data[i]; // Get the length of the value...
+                i += 1;
+                let value_data: Vec<u8> = data[i..i+8].to_vec(); // Get the value data, should work with different sized integers(to be implemented)...
+
+                Type::I(Some(I::from_bytes(&value_data)?)) // Set value to an integer...
+            }
+
+            b'B' =>
+            {
+                Type::B(Some(B::new(true))) // Set value to a boolean...
+            }
+
+            b'b' =>
+            {
+                Type::B(Some(B::new(false))) // Set value to a boolean...
+            }
+
             _ =>
             {
-                return Err(Box::new(SimpleError::new("Invalid value type!")));
+                bail!("Invalid value type byte!");
             }
         };
 
-        return Ok(Field::new(&id, value));
+        return Ok
+        (
+            Field
+            {
+                avl_balace: avl_balance,
+                left_child: left_child,
+                right_child: right_child,
+                id: String::from_utf8(id_data.to_vec())?,
+                value: value,
+            }
+        )
     }
 
-    pub fn cmp_in_file(mut file: File, field_point_a: u64, field_point_b: u64) -> Result<FieldCmp, Box<dyn Error>>
+    pub fn cmp(&self, field_b: &Field) -> Result<FieldCmp, Box<dyn Error>>
+    {
+        if(self.id < field_b.id)
+        {
+            return Ok(FieldCmp::LessThan);
+        }
+        if(self.id > field_b.id)
+        {
+            return Ok(FieldCmp::GreaterThan);
+        }
+
+        if(self.value < field_b.value)
+        {
+            return Ok(FieldCmp::LessThan);
+        }
+        if(self.value > field_b.value)
+        {
+            return Ok(FieldCmp::GreaterThan);
+        }
+
+        return Ok(FieldCmp::Equal);
+    }
+
+    pub fn cmp_in_file(file: &mut File, field_point_a: u64, field_point_b: u64) -> Result<FieldCmp, Box<dyn Error>>
     {
         // Does not work with continued chunks, to be implemented!
         // Implement a buffer of 256 bytes in size for both the a and b fields
@@ -295,6 +351,10 @@ impl Field
 #[cfg(test)]
 mod test
 {
+    use std::fs::OpenOptions;
+use std::fs::remove_file;
+use std::io::Write;
+    use std::mem::drop;
     use super::*;
 
     // Test data for all string field tests. Consists of an id equal to "Hello" and a value equal to "World"
@@ -304,75 +364,33 @@ mod test
     const test_string_data:[u8; 13] = [b'S', 5, b'H', b'e', b'l', b'l', b'o', 5, b'W', b'o', b'r', b'l', b'd'];
     const test_string_data_invalid:[u8; 12] = [b'S', 5, b'H', b'e', b'l', b'l', b'o', 5, b'W', b'o', b'r', b'l'];
 
-    // dbio::dbfield::test::test_field_to_bytes_string() - Tests the to_bytes function for a string field.
-    //
+    const test_filename: &str = "test.foobar";
+
     #[test]
-    fn test_field_to_bytes_string()
+    fn test_in_file_cmp_equal()
     {
-        let id = "Hello";
-        let value = "World";
-        let field = Field::new(id, Type::S(Some(S::new(value))));
+        let mut file = OpenOptions::new()
+            .write(true)
+            .read(true)
+            .create(true)
+            .open(test_filename)
+            .unwrap();
 
-        assert_eq!(field.to_bytes().unwrap(), test_string_data);
-    }
+        let field_a = Field::new("Hello", Type::S(Some(S::new("World"))));
+        let field_b = field_a.clone();
 
-    // dbio::dbfield::test::test_field_from_bytes_string() - Tests the from_bytes function for a string field.
-    //
-    #[test]
-    fn test_field_from_bytes_string()
-    {
-        let id = "Hello";
-        let value = "World";
-        let field = Field::new(id, Type::S(Some(S::new(value))));
+        let insertion_point_a = file.seek(std::io::SeekFrom::End(0)).unwrap();
+        file.write(&field_a.to_bytes().unwrap()).unwrap();
+        
+        let insertion_point_b = file.seek(std::io::SeekFrom::End(0)).unwrap();
+        file.write(&field_b.to_bytes().unwrap()).unwrap();
 
-        assert_eq!(Field::from_bytes(&test_string_data).unwrap(), field);
-    }
+        let cmp = Field::cmp_in_file(&mut file, insertion_point_a, insertion_point_b).unwrap();
 
-    // dbio::dbfield::test::test_field_to_bytes_string_invalid() - Tests the to_bytes function for a string field.
-    //
-    #[test]
-    fn test_field_from_bytes_string_invalid()
-    {
-        match Field::from_bytes(&test_string_data_invalid)
-        {
-            Err(error) =>
-            {
-                assert_eq!(error.to_string(), "Field data is too short!");
-            }
-            Ok(_) =>
-            {
-                panic!("Error check failed!");
-            }
-        }
-    }
+        assert_eq!(cmp, FieldCmp::Equal);
 
-    // dbio::dbfield::test::test_field_from_bytes_string_null() - Tests to see if the from bytes function handles empty byte vectors properly
-    //
-    #[test]
-    fn test_field_from_bytes_string_null()
-    {
-        match Field::from_bytes(&[])
-        {
-            Err(error) =>
-            {
-                assert_eq!(error.to_string(), "Field data is too short!");
-            }
-            Ok(_) =>
-            {
-                panic!("Error check failed!");
-            }
-        }
-    }
+        drop(file);
 
-    // dbio::dbfield::test::test_field_to_from_bytes() - Tests passing the to_bytes function to the from_bytes function
-    //
-    #[test]
-    fn test_field_to_from_bytes()
-    {
-        let id = "Hello";
-        let value = "World";
-        let field = Field::new(id, Type::S(Some(S::new(value))));
-
-        assert_eq!(Field::from_bytes(&field.to_bytes().unwrap()).unwrap(), field);
+        remove_file(test_filename).unwrap();
     }
 }

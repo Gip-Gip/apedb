@@ -6,3 +6,4 @@ pub mod dbfield;
 pub mod dbchunk;
 pub mod dbstruct;
 pub mod dblist;
+pub mod dbtree;

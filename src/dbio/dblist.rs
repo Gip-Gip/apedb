@@ -1,4 +1,5 @@
 
+use crate::dbio::dbtree::LazyAVL;
 use std::error::Error;
 use simple_error::*;
 use crate::dbio::dbstruct::Structure;
@@ -9,50 +10,6 @@ use crate::dbio::dbchunk::*;
 use crate::apetypes::S;
 use crate::apetypes::Type;
 use apebdlm::*;
-
-
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct TreeField
-{
-    pub field: Field,
-    pub parent_set: bool,
-    pub left_child_set: bool,
-    pub right_child_set: bool,
-    pub parent_position: u64,
-    pub left_child_position: u64,
-    pub right_child_position: u64,
-}
-
-impl TreeField
-{
-    pub fn new(field: Field) -> Self
-    {
-        return Self
-        {
-            field: field,
-            parent_set: false,
-            left_child_set: false,
-            right_child_set: false,
-            parent_position: 0,
-            left_child_position: 0,
-            right_child_position: 0,
-        };
-    }
-
-    pub fn to_bytes(&self) -> Result<Vec<u8>, Box<dyn Error>>
-    {
-        let mut data = binary_data!
-        (
-            u64_be!(self.parent_position),
-            u64_be!(self.left_child_position),
-            u64_be!(self.right_child_position),
-            bytes_from_vec!(self.field.to_bytes()?)
-        );
-
-        return Ok(data);
-    }
-}
 
 
 
@@ -95,22 +52,27 @@ impl Entry
 pub struct List
 {
     pub structure: Structure,
-    pub b_tree_head: u64,
+    pub tree: LazyAVL,
     pub db_file: ChunkyFile,
     pub entry_count: u64
 }
 
 impl List
 {
-    pub fn new(db_file: ChunkyFile, structure: Structure) -> Self
+    pub fn new(db_file: ChunkyFile, structure: Structure) -> Result<Self, Box<dyn Error>>
     {
-        return Self
-        {
-            structure: structure,
-            b_tree_head: 0,
-            db_file: db_file,
-            entry_count: 0,
-        };
+        let tree = LazyAVL::new(db_file.file.try_clone()?, 0, 0);
+
+        return Ok
+        (
+            Self
+            {
+                structure: structure,
+                tree: tree,
+                db_file: db_file,
+                entry_count: 0,
+            }
+        );
     }
 
     pub fn add_entry(&mut self, entry: Entry) -> Result<(), Box<dyn Error>>
@@ -118,9 +80,19 @@ impl List
         let entry_chunk = EntryChunk::new(entry);
         let mut insertion_points = self.db_file.add_entry_chunk(entry_chunk)?;
 
-        if(self.b_tree_head == 0 && insertion_points.len() > 0)
+        if insertion_points.len() == 0
         {
-            self.b_tree_head = insertion_points.pop().expect("Insertion point length check failed! you shouldn't see this!");
+            bail!("Fieldless entry!");
+        }
+
+        if self.tree.head == 0
+        {
+            self.tree.head = insertion_points.pop().expect("Insertion point length check failed! you shouldn't see this!");
+        }
+
+        for insertion_point in insertion_points
+        {
+            self.tree.insert(insertion_point)?;
         }
 
 
@@ -134,22 +106,6 @@ impl List
 mod tests
 {
     use super::*;
-
-    #[test]
-    fn test_tree_field_new()
-    {
-        let field = Field::new("test_field", Type::S(None));
-        let tree_field = TreeField::new(field);
-
-        assert_eq!(tree_field.field.id, "test_field");
-        assert_eq!(tree_field.field.value, Type::S(None));
-        assert_eq!(tree_field.parent_set, false);
-        assert_eq!(tree_field.left_child_set, false);
-        assert_eq!(tree_field.right_child_set, false);
-        assert_eq!(tree_field.parent_position, 0);
-        assert_eq!(tree_field.left_child_position, 0);
-        assert_eq!(tree_field.right_child_position, 0);
-    }
 
     #[test]
     fn test_entry_new()
@@ -170,5 +126,43 @@ mod tests
         let fields = vec![Field::new("id", Type::S(Some(S::new("Test"))))];
         let entry = Entry::new(uuid, fields).unwrap();
         assert_eq!(entry.get_field("id").unwrap().value, Type::S(Some(S::new("Test"))));
+    }
+
+    #[test]
+    fn test_list_new()
+    {
+        let structure = Structure::new("test", vec![Requirement::new("id", std::mem::discriminant(&Type::S(None)))]);
+        let db_file = ChunkyFile::create("tests/test_list_new.db").unwrap();
+
+        let list = List::new(db_file, structure.clone()).unwrap();
+
+        assert_eq!(list.structure, structure);
+        assert_eq!(list.tree.head, 0);
+        assert_eq!(list.entry_count, 0);
+    }
+
+    #[test]
+    fn test_list_add_entry()
+    {
+        let structure = Structure::new("test", vec![Requirement::new("id", std::mem::discriminant(&Type::S(None)))]);
+        let db_file = ChunkyFile::create("tests/test_list_add_entry.db").unwrap();
+
+        let mut list = List::new(db_file, structure).unwrap();
+
+        let uuid1 = UuidV4::new();
+        let fields1 = vec![Field::new("id", Type::S(Some(S::new("Test1"))))];
+        let entry1 = Entry::new(uuid1, fields1).unwrap();
+
+        let uuid2 = UuidV4::new();
+        let fields2 = vec![Field::new("id", Type::S(Some(S::new("Test2"))))];
+        let entry2 = Entry::new(uuid2, fields2).unwrap();
+
+        let uuid3 = UuidV4::new();
+        let fields3 = vec![Field::new("id", Type::S(Some(S::new("Test3"))))];
+        let entry3 = Entry::new(uuid3, fields3).unwrap();
+
+        list.add_entry(entry1).unwrap();
+        list.add_entry(entry2).unwrap();
+        list.add_entry(entry3).unwrap();
     }
 }

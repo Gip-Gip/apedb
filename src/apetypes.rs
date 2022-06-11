@@ -13,7 +13,7 @@ use std::error::Error;
 
 // apetypes::Type - Enum for the different types of data that can be stored in the database.
 //
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Type
 {
     I(Option<I>), // Integer
@@ -28,7 +28,7 @@ pub enum Type
 
 // apetypes::S - Database string type
 //
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct S
 {
     string: String, // The string
@@ -73,7 +73,7 @@ impl S
 
 // apetypes::I - Database integer type
 //
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct I
 {
     most_significant: i64,
@@ -105,11 +105,27 @@ impl I
 
         return data;
     }
+
+    // apetypes::I::from_bytes() - Convert a byte array to an I
+    //
+    // ARGUMENTS:
+    //  bytes: &[u8] - The byte array to convert
+    pub fn from_bytes(bytes: &[u8]) -> Result<I, Box<dyn Error>>
+    {
+        return Ok
+        (
+            I
+            {
+                most_significant: i64::from_be_bytes(bytes[0..8].try_into().unwrap()),
+                //trailing: Vec::<u64>::new(),
+            }
+        );
+    }
 }
 
 // apetypes::B - Database boolean type
 //
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct B
 {
     boolean: bool, // The boolean value
